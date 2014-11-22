@@ -1,3 +1,0 @@
-Zeus.loader([
-  './not-found'
-]);

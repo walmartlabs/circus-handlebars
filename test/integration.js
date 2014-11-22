@@ -103,7 +103,7 @@ describe('loader integration', function() {
       expect(status.compilation.errors).to.be.empty;
       expect(status.compilation.warnings).to.be.empty;
 
-      var pack = JSON.parse(fs.readFileSync(outputDir + '/pack.json').toString());
+      var pack = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
       expect(_.pluck(pack.modules, 'name').sort()).to.eql([
         'handlebars/runtime',
         'handlebars/runtime/dist/cjs/handlebars.runtime',
@@ -141,7 +141,7 @@ describe('loader integration', function() {
       expect(status.compilation.errors).to.be.empty;
       expect(status.compilation.warnings).to.be.empty;
 
-      expect(Object.keys(status.compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'pack.json', 'bundle.js.map']);
+      expect(Object.keys(status.compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
 
       // Verify the actual css content
       var output = fs.readFileSync(outputDir + '/0.bundle.css').toString();
@@ -173,66 +173,6 @@ describe('loader integration', function() {
         ]);
 
         done();
-      });
-    });
-  });
-
-  describe('externals', function() {
-    it('should load externals from resolved packages', function(done) {
-      var vendorEntry = path.resolve(__dirname + '/fixtures/require-packages.js'),
-          entry = path.resolve(__dirname + '/fixtures/externals.js');
-
-      outputDir = 'tmp/';
-
-      webpack(Pack.config({
-        entry: vendorEntry,
-        output: {
-          component: 'vendor',
-
-          libraryTarget: 'umd',
-          library: 'Zeus',
-
-          path: outputDir + '/vendor',
-          filename: 'vendor.js',
-          chunkFilename: '[hash:3].[id].vendor.js'
-        }
-      }), function(err, status) {
-        expect(err).to.not.exist;
-        expect(status.compilation.errors).to.be.empty;
-        expect(status.compilation.warnings).to.be.empty;
-
-        webpack(Pack.config({
-          entry: entry,
-
-          output: {
-            path: outputDir,
-            filename: 'bundle.js'
-          },
-
-          resolve: {
-            modulesDirectories: [
-              outputDir
-            ]
-          }
-        }), function(err, status) {
-          expect(err).to.not.exist;
-          expect(status.compilation.errors).to.be.empty;
-          expect(status.compilation.warnings).to.be.empty;
-
-          runPhantom(function(err, loaded) {
-            expect(loaded.scripts.length).to.equal(3);
-            expect(loaded.scripts[0]).to.match(/vendor.js$/);
-            expect(loaded.scripts[1]).to.match(/\.1\.vendor.js$/);
-            expect(loaded.scripts[2]).to.match(/bundle.js$/);
-
-            expect(loaded.log).to.eql([
-              '_: true Handlebars: true',
-              'App: _: true Handlebars: true Vendor: true'
-            ]);
-
-            done();
-          });
-        });
       });
     });
   });
