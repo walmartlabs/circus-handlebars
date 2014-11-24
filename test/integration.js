@@ -46,9 +46,9 @@ describe('loader integration', function() {
         },
         plugins: [1]
       });
-      expect(config.length).to.equal(6);
+      expect(config.length).to.equal(7);
 
-      config = config[0];
+      config = config[1];
       expect(config.module.loaders.length).to.equal(3);
       expect(config.module.loaders[2]).to.equal(2);
       expect(config.resolve).to.eql({
@@ -59,17 +59,18 @@ describe('loader integration', function() {
       expect(config.plugins[3]).to.equal(1);
     });
 
-    it('should provide server-side chunk names', function() {
+    it('should include pathPref', function() {
       var config = Pack.config({
         serverSide: true,
         output: {
           chunkFilename: 'foo.js'
-        }
+        },
+        pathPrefix: 'foo'
       });
-      expect(config.length).to.equal(2);
+      expect(config.length).to.equal(3);
 
-      config = config[1];
-      expect(config.output.chunkFilename).to.equal('foo-server.js');
+      config = config[2];
+      expect(config.output.path).to.equal('server-foo');
     });
   });
 
@@ -162,18 +163,18 @@ describe('loader integration', function() {
     }), function(err, status) {
       expect(err).to.not.exist;
 
-      var compilation = status.stats[0].compilation;
+      var compilation = status.stats[1].compilation;
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
       expect(Object.keys(compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
 
       // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/bundle.js').toString();
+      var output = fs.readFileSync(outputDir + '/client/bundle.js').toString();
       expect(output).to.match(/if \(true\)/);
       expect(output).to.match(/Zeus\.router/);
 
-      output = fs.readFileSync(outputDir + '/bundle-server.js').toString();
+      output = fs.readFileSync(outputDir + '/server/bundle.js').toString();
       expect(output).to.match(/if \(false\)/);
       expect(output).to.not.match(/Zeus\.router/);
 
@@ -224,14 +225,25 @@ describe('loader integration', function() {
     }), function(err, status) {
       expect(err).to.not.exist;
 
-      var compilation = status.stats[0].compilation;
+
+      var compilation = status.stats[1].compilation;
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
       expect(Object.keys(compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
 
+      // Check the meta config definition
+      var output = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
+      expect(output).to.eql({
+        children: {
+          "$isAndroid;": "android",
+          "$isiOS;": "ios",
+          "$isBrowser;": "browser"
+        }
+      });
+
       // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/browser/0.bundle.css').toString();
+      output = fs.readFileSync(outputDir + '/browser/0.bundle.css').toString();
       expect(output).to.match(/\.foo\s*\{/);
       expect(output).to.match(/\.baz\s*\{/);
       expect(output).to.match(/\.browser\s*\{/);
