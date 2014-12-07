@@ -3,7 +3,7 @@
   "-W082": true,
   "node": true,
   "esnext": false,
-  "browser": true,
+  "browser": false,
   "bitwise": true,
   "curly": true,
   "eqeqeq": true,
