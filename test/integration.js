@@ -84,7 +84,7 @@ describe('loader integration', function() {
         library: 'Zeus',
 
         path: outputDir,
-        chunkFilename: '[hash:3].[id].bundle.js'
+        chunkFilename: '[hash:3].[id].pack.js'
       }
     }), function(err, status) {
       expect(err).to.not.exist;
@@ -95,12 +95,12 @@ describe('loader integration', function() {
       runPhantom(function(err, loaded) {
         // Opposite order as the loader injects into the top of head
         expect(loaded.scripts.length).to.eql(2);
-        expect(loaded.scripts[0]).to.match(/\.1\.bundle\.js$/);
-        expect(loaded.scripts[1]).to.match(/\/bundle\.js$/);
+        expect(loaded.scripts[0]).to.match(/\.1\.pack\.js$/);
+        expect(loaded.scripts[1]).to.match(/\/pack\.js$/);
 
         expect(loaded.styles.length).to.eql(2);
-        expect(loaded.styles[0]).to.match(/\.0\.bundle\.css$/);
-        expect(loaded.styles[1]).to.match(/\.1\.bundle\.css$/);
+        expect(loaded.styles[0]).to.match(/\.0\.pack\.css$/);
+        expect(loaded.styles[1]).to.match(/\.1\.pack\.css$/);
 
         done();
       });
@@ -167,14 +167,14 @@ describe('loader integration', function() {
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
-      expect(Object.keys(compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
+      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
 
       // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/client/bundle.js').toString();
+      var output = fs.readFileSync(outputDir + '/client/pack.js').toString();
       expect(output).to.match(/if \(true\)/);
       expect(output).to.match(/Zeus\.router/);
 
-      output = fs.readFileSync(outputDir + '/server/bundle.js').toString();
+      output = fs.readFileSync(outputDir + '/server/pack.js').toString();
       expect(output).to.match(/if \(false\)/);
       expect(output).to.not.match(/Zeus\.router/);
 
@@ -200,10 +200,10 @@ describe('loader integration', function() {
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
-      expect(Object.keys(compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
+      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
 
       // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/0.bundle.css').toString();
+      var output = fs.readFileSync(outputDir + '/0.pack.css').toString();
       expect(output).to.match(/\.foo\s*\{/);
       expect(output).to.match(/\.baz\s*\{/);
       expect(output).to.not.match(/\.browser\s*\{/);
@@ -230,7 +230,7 @@ describe('loader integration', function() {
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
-      expect(Object.keys(compilation.assets)).to.eql(['bundle.js', '0.bundle.css', 'circus.json', 'bundle.js.map']);
+      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
 
       // Check the meta config definition
       var output = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
@@ -243,21 +243,21 @@ describe('loader integration', function() {
       });
 
       // Verify the actual css content
-      output = fs.readFileSync(outputDir + '/browser/0.bundle.css').toString();
+      output = fs.readFileSync(outputDir + '/browser/0.pack.css').toString();
       expect(output).to.match(/\.foo\s*\{/);
       expect(output).to.match(/\.baz\s*\{/);
       expect(output).to.match(/\.browser\s*\{/);
       expect(output).to.not.match(/\.android\s*\{/);
       expect(output).to.not.match(/\.ios\s*\{/);
 
-      output = fs.readFileSync(outputDir + '/ios/0.bundle.css').toString();
+      output = fs.readFileSync(outputDir + '/ios/0.pack.css').toString();
       expect(output).to.match(/\.foo\s*\{/);
       expect(output).to.match(/\.baz\s*\{/);
       expect(output).to.not.match(/\.browser\s*\{/);
       expect(output).to.not.match(/\.android\s*\{/);
       expect(output).to.match(/\.ios\s*\{/);
 
-      output = fs.readFileSync(outputDir + '/android/0.bundle.css').toString();
+      output = fs.readFileSync(outputDir + '/android/0.pack.css').toString();
       expect(output).to.match(/\.foo\s*\{/);
       expect(output).to.match(/\.baz\s*\{/);
       expect(output).to.not.match(/\.browser\s*\{/);
