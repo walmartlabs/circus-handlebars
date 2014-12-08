@@ -158,6 +158,7 @@ describe('loader integration', function() {
       entry: entry,
       serverSide: true,
       output: {
+        filename: 'superpack.js',
         path: outputDir
       }
     }), function(err, status) {
@@ -167,14 +168,14 @@ describe('loader integration', function() {
       expect(compilation.errors).to.be.empty;
       expect(compilation.warnings).to.be.empty;
 
-      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
+      expect(Object.keys(compilation.assets)).to.eql(['superpack.js', '0.superpack.css', 'circus.json', 'superpack.js.map']);
 
       // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/client/pack.js').toString();
+      var output = fs.readFileSync(outputDir + '/client/superpack.js').toString();
       expect(output).to.match(/if \(true\)/);
       expect(output).to.match(/Zeus\.router/);
 
-      output = fs.readFileSync(outputDir + '/server/pack.js').toString();
+      output = fs.readFileSync(outputDir + '/server/superpack.js').toString();
       expect(output).to.match(/if \(false\)/);
       expect(output).to.not.match(/Zeus\.router/);
 
