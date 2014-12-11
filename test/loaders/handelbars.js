@@ -57,7 +57,7 @@ describe('handlebars loader', function() {
 
       module: {
         loaders: [
-          { test: /\.hbs$/, loader: __dirname + '/../../lib/loaders/handlebars?knownHelpers=bat' }
+          { test: /\.hbs$/, loader: __dirname + '/../../lib/loaders/handlebars?knownHelpers[]=baat&knownHelpers[]=bat' }
         ]
       }
     }, function(err, status) {
