@@ -179,6 +179,11 @@ describe('loader integration', function() {
       expect(output).to.match(/if \(false\)/);
       expect(output).to.not.match(/Zeus\.router/);
 
+      output = JSON.parse(fs.readFileSync(outputDir + '/client/circus.json').toString());
+      expect(output.serverRender).to.not.exist;
+      output = JSON.parse(fs.readFileSync(outputDir + '/server/circus.json').toString());
+      expect(output.serverRender).to.equal(true);
+
       done();
     });
   });
