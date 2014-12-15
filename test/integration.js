@@ -55,8 +55,8 @@ describe('loader integration', function() {
         modulesDirectories: ['web_modules', 'node_modules', 'bower_components'],
         bar: 'baz'
       });
-      expect(config.plugins.length).to.equal(4);
-      expect(config.plugins[3]).to.equal(1);
+      expect(config.plugins.length).to.equal(5);
+      expect(config.plugins[4]).to.equal(1);
     });
 
     it('should include pathPref', function() {
