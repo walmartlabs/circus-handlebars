@@ -70,7 +70,7 @@ describe('loader integration', function() {
       expect(config.length).to.equal(3);
 
       config = config[2];
-      expect(config.output.path).to.equal('build/server-foo');
+      expect(config.output.path).to.match(/build\/server-foo$/);
     });
   });
 
