@@ -2,7 +2,7 @@
 {
   "-W082": true,
   "node": true,
-  "esnext": false,
+  "esnext": true,
   "browser": false,
   "bitwise": true,
   "curly": true,
