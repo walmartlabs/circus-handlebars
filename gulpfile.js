@@ -10,10 +10,8 @@
 var gulp = require('gulp'),
     config = require('./gulp/config');
 
-require('./gulp');
 
-gulp.task('default', ['lint']);
+var Pack = require('./gulp');
 
-gulp.task('dev', ['lint', 'test'], function() {
-  gulp.watch(config.source.concat(['./test/**/*.js']), ['lint', 'test']);
-});
+Pack.dev(['lint', 'test']);
+gulp.task('default', ['dev']);
