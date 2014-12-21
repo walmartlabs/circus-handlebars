@@ -10,6 +10,14 @@
 var gulp = require('gulp'),
     config = require('./gulp/config');
 
+// Our project structure is slightly different as we are a Node module exclusively
+config.serverSource = ['lib/**/*.js'];
+config.clientSource = [];
+config.mochaTests = [
+  'test/**/*.js',
+  '!test/client/**/*.js',
+  '!test/fixtures/**/*.js'
+];
 
 var Pack = require('./gulp');
 
