@@ -68,7 +68,7 @@ describe('handlebars loader', function() {
 
       // Verify the loader boilerplate
       var output = fs.readFileSync(outputDir + '/bundle.js').toString();
-      expect(output).to.match(/Handlebars.registerPartial\("fixtures\/handlebars.hbs", __webpack_require__/);
+      expect(output).to.match(/\.registerPartial\("fixtures\/handlebars.hbs", __webpack_require__/);
       expect(output).to.match(/invokePartial\(.*'fixtures\/handlebars.hbs'/);
       expect(output).to.match(/invokePartial\(.*'not-found'/);
       expect(output).to.match(/helpers.foo.call\(/);
