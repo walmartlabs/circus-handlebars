@@ -1,5 +1,6 @@
 var _ = require('lodash'),
     Pack = require('../lib'),
+    Path = require('path'),
     webpack = require('webpack');
 
 var childProcess = require('child_process'),
@@ -44,6 +45,11 @@ describe('loader integration', function() {
         resolve: {
           bar: 'baz'
         },
+        resolveLoader: {
+          alias: {
+            'bar': 'bat'
+          }
+        },
         plugins: [1]
       });
       expect(config.length).to.equal(7);
@@ -55,8 +61,15 @@ describe('loader integration', function() {
         modulesDirectories: ['web_modules', 'node_modules', 'bower_components'],
         bar: 'baz'
       });
-      expect(config.plugins.length).to.equal(5);
-      expect(config.plugins[4]).to.equal(1);
+      expect(config.resolveLoader).to.eql({
+        alias: {
+          partial: Path.resolve(__dirname + '/../lib/loaders/partial'),
+          helper: Path.resolve(__dirname + '/../lib/loaders/helper'),
+          bar: 'bat'
+        }
+      });
+      expect(config.plugins.length).to.equal(6);
+      expect(config.plugins[5]).to.equal(1);
     });
 
     it('should include pathPref', function() {
@@ -274,30 +287,102 @@ describe('loader integration', function() {
     });
   });
 
-  it('should precompile handlebars templates', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/handlebars-render.js');
+  describe('handlebars', function() {
+    it('should precompile handlebars templates', function(done) {
+      var entry = path.resolve(__dirname + '/fixtures/handlebars-render.js');
 
-    webpack(Pack.config({
-      entry: entry,
-      output: {
-        libraryTarget: 'umd',
-        library: 'Zeus',
+      webpack(Pack.config({
+        context: __dirname,
+        entry: entry,
+        output: {
+          libraryTarget: 'umd',
+          library: 'Zeus',
 
-        path: outputDir
-      }
-    }), function(err, status) {
-      expect(err).to.not.exist;
+          path: outputDir
+        }
+      }), function(err, status) {
+        expect(err).to.not.exist;
 
-      var compilation = status.stats[0].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
+        var compilation = status.stats[0].compilation;
+        expect(compilation.errors).to.be.empty;
+        expect(compilation.warnings).to.be.empty;
 
-      runPhantom(function(err, loaded) {
-        expect(loaded.log).to.eql([
-          'it worked'
-        ]);
+        var output = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
+        expect(output.handlebars).to.eql({
+          partial: {
+            'fixtures/partial': 'partial:fixtures/partial'
+          },
+          helper: { logger: 'helper:logger' }
+        });
 
-        done();
+        runPhantom(function(err, loaded) {
+          expect(loaded.log).to.eql([
+            'it worked',
+            'this too',
+            'also here'
+          ]);
+
+          done();
+        });
+      });
+    });
+    it('should load external handlebars resources from child chunks', function(done) {
+      var vendorEntry = path.resolve(__dirname + '/fixtures/require-helpers.js'),
+          entry = path.resolve(__dirname + '/fixtures/handlebars-components.js');
+
+      webpack(Pack.config({
+        context: __dirname,
+        entry: vendorEntry,
+        output: {
+          component: 'vendor',
+
+          libraryTarget: 'umd',
+          library: 'Circus',
+
+          path: outputDir + '/vendor',
+          filename: 'vendor.js'
+        }
+      }), function(err, status) {
+        expect(err).to.not.exist;
+
+        var compilation = status.stats[0].compilation;
+        expect(compilation.errors).to.be.empty;
+        expect(compilation.warnings).to.be.empty;
+
+        webpack(Pack.config({
+          entry: entry,
+
+          output: {
+            path: outputDir
+          },
+
+          resolve: {
+            modulesDirectories: [
+              outputDir
+            ]
+          }
+        }), function(err, status) {
+          expect(err).to.not.exist;
+
+          var compilation = status.stats[0].compilation;
+          expect(compilation.errors).to.be.empty;
+          expect(compilation.warnings).to.be.empty;
+
+          runPhantom(function(err, loaded) {
+            expect(loaded.scripts.length).to.equal(3);
+            expect(loaded.scripts[0]).to.match(/vendor.js$/);
+            expect(loaded.scripts[1]).to.match(/1\.vendor.js$/);
+            expect(loaded.scripts[2]).to.match(/pack.js$/);
+
+            expect(loaded.log).to.eql([
+              'it worked',
+              'this too',
+              'also here'
+            ]);
+
+            done();
+          });
+        });
       });
     });
   });

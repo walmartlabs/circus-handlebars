@@ -1,4 +1,5 @@
-var webpack = require('webpack');
+var webpack = require('webpack'),
+    HandlebarsExportsPlugin = require('../../lib/plugins/handlebars-exports');
 
 var expect = require('chai').expect,
     temp = require('temp'),
@@ -26,6 +27,7 @@ describe('handlebars loader', function() {
     var entry = path.resolve(__dirname + '/../fixtures/handlebars.hbs');
 
     webpack({
+      context: __dirname + '/..',
       entry: entry,
       output: {path: outputDir},
 
@@ -55,6 +57,9 @@ describe('handlebars loader', function() {
       entry: entry,
       output: {path: outputDir},
 
+      plugins: [
+        new HandlebarsExportsPlugin()
+      ],
       module: {
         loaders: [
           { test: /\.hbs$/, loader: __dirname + '/../../lib/loaders/handlebars?knownHelpers[]=baat&knownHelpers[]=bat' }
@@ -68,8 +73,8 @@ describe('handlebars loader', function() {
 
       // Verify the loader boilerplate
       var output = fs.readFileSync(outputDir + '/bundle.js').toString();
-      expect(output).to.match(/\.registerPartial\("fixtures\/handlebars.hbs", __webpack_require__/);
-      expect(output).to.match(/invokePartial\(.*'fixtures\/handlebars.hbs'/);
+      expect(output).to.match(/\.registerPartial\("fixtures\/handlebars", __webpack_require__/);
+      expect(output).to.match(/invokePartial\(.*'fixtures\/handlebars'/);
       expect(output).to.match(/invokePartial\(.*'not-found'/);
       expect(output).to.match(/helpers.foo.call\(/);
       expect(output).to.match(/helpers.bat.call\(/);

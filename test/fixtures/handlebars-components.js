@@ -1,4 +1,4 @@
-var template = require('./handlebars.hbs');
+var template = require('./handlebars-components.hbs');
 
 document.body.innerHTML += template();
 
