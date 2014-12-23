@@ -4,17 +4,6 @@ Implments Handlebars precompilation that is aware of Circus component dependenci
 
 ## Usage
 
-Used as a preprocessor for the `Circus.config` method:
-
-```javascript
-var Circus = require('circus'),
-    CircusHandlebars = require('circus-handlebars');
-
-var config = {};
-config = CircusHandlebars.config(config);
-config = Circus.config(config);
-```
-
 ### Helpers
 
 Helpers are implemented as simple CommonJS modules and circus-handlebars will handle registration of the helper, utilizing the filename.
@@ -38,8 +27,18 @@ require('partial!./footer');
 
 Will register the `i18n` helper and `footer` partial for use in any dependent projects, without having to reference either directly in a template within the hosting component.
 
+### Configuration
 
-## Config Options
+Used as a preprocessor for the `Circus.config` method:
+
+```javascript
+var Circus = require('circus'),
+    CircusHandlebars = require('circus-handlebars');
+
+var config = {};
+config = CircusHandlebars.config(config);
+config = Circus.config(config);
+```
 
 circus-handlebars defines optional config values on the `handlebars` config key. These are:
 
