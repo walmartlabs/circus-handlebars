@@ -96,7 +96,9 @@ describe('loader integration', function() {
       entry: entry,
       output: {path: outputDir},
 
-      knownHelpers: ['baat', 'bat']
+      handlebars: {
+        knownHelpers: ['baat', 'bat']
+      }
     }), function(err, status) {
       expect(err).to.not.exist;
       expect(status.compilation.errors).to.be.empty;
@@ -113,6 +115,36 @@ describe('loader integration', function() {
       expect(output).to.match(/module\.exports = Handlebars\.template\(.*"main"/);
       expect(output).to.match(/"foo!"/);
       expect(output).to.match(/<log info=/);
+
+      done();
+    });
+  });
+  it('should honor dependency configs', function(done) {
+    var entry = path.resolve(__dirname + '/fixtures/dependencies.hbs');
+
+    webpack(CircusHandlebars.config({
+      context: __dirname,
+      entry: entry,
+      output: {path: outputDir},
+
+      handlebars: {
+        knownHelpers: ['baat', 'bat', 'foo'],
+        helpersDir: '.',
+        extension: '.foo'
+      }
+    }), function(err, status) {
+      expect(err).to.not.exist;
+      expect(status.compilation.errors).to.be.empty;
+      expect(status.compilation.warnings.length).to.equal(2);
+      expect(status.compilation.warnings[0].toString()).to.match(/Unable to resolve partial ".\/handlebars": .*test\/fixtures/);
+      expect(status.compilation.warnings[1].toString()).to.match(/Unable to resolve partial "not-found": .*test\/fixtures/);
+
+      // Verify the loader boilerplate
+      var output = fs.readFileSync(outputDir + '/bundle.js').toString();
+      expect(output).to.match(/invokePartial\(.*'\.\/handlebars'/);
+      expect(output).to.match(/invokePartial\(.*'not-found'/);
+      expect(output).to.match(/helpers.bat.call\(/);
+      expect(output).to.match(/module\.exports = Handlebars\.template\(.*"main"/);
 
       done();
     });
