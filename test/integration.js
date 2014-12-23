@@ -1,5 +1,5 @@
-var _ = require('lodash'),
-    Pack = require('../lib'),
+var Circus = require('circus'),
+    CircusHandlebars = require('../lib'),
     Path = require('path'),
     webpack = require('webpack');
 
@@ -36,14 +36,9 @@ describe('loader integration', function() {
 
   describe('#config', function() {
     it('should extend config', function() {
-      var config = Pack.config({
-        serverSide: true,
-        hybrid: true,
+      var config = CircusHandlebars.config({
         module: {
           loaders: [2]
-        },
-        resolve: {
-          bar: 'baz'
         },
         resolveLoader: {
           alias: {
@@ -52,15 +47,9 @@ describe('loader integration', function() {
         },
         plugins: [1]
       });
-      expect(config.length).to.equal(7);
 
-      config = config[1];
-      expect(config.module.loaders.length).to.equal(3);
-      expect(config.module.loaders[2]).to.equal(2);
-      expect(config.resolve).to.eql({
-        modulesDirectories: ['web_modules', 'node_modules', 'bower_components'],
-        bar: 'baz'
-      });
+      expect(config.module.loaders.length).to.equal(2);
+      expect(config.module.loaders[1]).to.equal(2);
       expect(config.resolveLoader).to.eql({
         alias: {
           partial: Path.resolve(__dirname + '/../lib/loaders/partial'),
@@ -68,242 +57,85 @@ describe('loader integration', function() {
           bar: 'bat'
         }
       });
-      expect(config.plugins.length).to.equal(6);
-      expect(config.plugins[5]).to.equal(1);
-    });
-
-    it('should include pathPref', function() {
-      var config = Pack.config({
-        serverSide: true,
-        output: {
-          chunkFilename: 'foo.js'
-        },
-        pathPrefix: 'foo'
-      });
-      expect(config.length).to.equal(3);
-
-      config = config[2];
-      expect(config.output.path).to.match(/build\/server-foo$/);
+      expect(config.plugins.length).to.equal(2);
+      expect(config.plugins[1]).to.equal(1);
     });
   });
 
-  it('should load js+css on initial route', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/multiple-chunks.js');
+  it('should precompile', function(done) {
+    var entry = path.resolve(__dirname + '/fixtures/handlebars.hbs');
 
-    webpack(Pack.config({
+    webpack({
+      context: __dirname,
       entry: entry,
-      output: {
-        libraryTarget: 'umd',
-        library: 'Zeus',
+      output: {path: outputDir},
 
-        path: outputDir,
-        chunkFilename: '[hash:3].[id].pack.js'
+      module: {
+        loaders: [
+          { test: /\.hbs$/, loader: __dirname + '/../lib/loaders/handlebars' }
+        ]
       }
-    }), function(err, status) {
+    }, function(err, status) {
       expect(err).to.not.exist;
-      var compilation = status.stats[0].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
+      expect(status.compilation.errors).to.be.empty;
+      expect(status.compilation.warnings).to.be.empty;
 
-      runPhantom(function(err, loaded) {
-        // Opposite order as the loader injects into the top of head
-        expect(loaded.scripts.length).to.eql(2);
-        expect(loaded.scripts[0]).to.match(/\.1\.pack\.js$/);
-        expect(loaded.scripts[1]).to.match(/\/pack\.js$/);
+      // Verify the loader boilerplate
+      var output = fs.readFileSync(outputDir + '/bundle.js').toString();
+      expect(output).to.match(/module\.exports = Handlebars\.template\(.*"main"/);
+      expect(output).to.match(/<log info=/);
 
-        expect(loaded.styles.length).to.eql(2);
-        expect(loaded.styles[0]).to.match(/\.0\.pack\.css$/);
-        expect(loaded.styles[1]).to.match(/\.1\.pack\.css$/);
-
-        done();
-      });
+      done();
     });
   });
-  it('should resolve bower and npm packages', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/packages.js');
+  it('should load dependencies', function(done) {
+    var entry = path.resolve(__dirname + '/fixtures/dependencies.hbs');
 
-    webpack(Pack.config({
+    webpack(CircusHandlebars.config({
+      context: __dirname,
       entry: entry,
-      output: {
-        libraryTarget: 'umd',
-        library: 'Zeus',
+      output: {path: outputDir},
 
-        path: outputDir,
-        chunkFilename: '[hash:3].[id].bundle.js'
-      }
+      knownHelpers: ['baat', 'bat']
     }), function(err, status) {
       expect(err).to.not.exist;
+      expect(status.compilation.errors).to.be.empty;
+      expect(status.compilation.warnings.length).to.equal(1);
+      expect(status.compilation.warnings[0].toString()).to.match(/Unable to resolve partial "not-found": .*test\/fixtures/);
 
-      var compilation = status.stats[0].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
-
-      var pack = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
-      expect(_.pluck(pack.modules, 'name').sort()).to.eql([
-        'handlebars/runtime',
-        'handlebars/runtime/dist/cjs/handlebars.runtime',
-        'handlebars/runtime/dist/cjs/handlebars/base',
-        'handlebars/runtime/dist/cjs/handlebars/exception',
-        'handlebars/runtime/dist/cjs/handlebars/runtime',
-        'handlebars/runtime/dist/cjs/handlebars/safe-string',
-        'handlebars/runtime/dist/cjs/handlebars/utils',
-        'pack/test/fixtures/packages',
-        'underscore'
-      ]);
-
-      runPhantom(function(err, loaded) {
-        expect(loaded.log).to.eql([
-          '_: true Handlebars: true'
-        ]);
-
-        done();
-      });
-    });
-  });
-
-
-  it('should build server files', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/stylus.js');
-
-    outputDir = 'tmp/';
-
-    webpack(Pack.config({
-      entry: entry,
-      serverSide: true,
-      output: {
-        filename: 'superpack.js',
-        path: outputDir
-      }
-    }), function(err, status) {
-      expect(err).to.not.exist;
-
-      var compilation = status.stats[1].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
-
-      expect(Object.keys(compilation.assets)).to.eql(['superpack.js', '0.superpack.css', 'circus.json', 'superpack.js.map']);
-
-      // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/client/superpack.js').toString();
-      expect(output).to.match(/if \(true\)/);
-      expect(output).to.match(/Zeus\.router/);
-
-      output = fs.readFileSync(outputDir + '/server/superpack.js').toString();
-      expect(output).to.match(/if \(false\)/);
-      expect(output).to.not.match(/Zeus\.router/);
-
-      output = JSON.parse(fs.readFileSync(outputDir + '/client/circus.json').toString());
-      expect(output.serverRender).to.not.exist;
-      output = JSON.parse(fs.readFileSync(outputDir + '/server/circus.json').toString());
-      expect(output.serverRender).to.equal(true);
+      // Verify the loader boilerplate
+      var output = fs.readFileSync(outputDir + '/bundle.js').toString();
+      expect(output).to.match(/\.registerPartial\("fixtures\/handlebars", __webpack_require__/);
+      expect(output).to.match(/invokePartial\(.*'fixtures\/handlebars'/);
+      expect(output).to.match(/invokePartial\(.*'not-found'/);
+      expect(output).to.match(/helpers.foo.call\(/);
+      expect(output).to.match(/helpers.bat.call\(/);
+      expect(output).to.match(/module\.exports = Handlebars\.template\(.*"main"/);
+      expect(output).to.match(/"foo!"/);
+      expect(output).to.match(/<log info=/);
 
       done();
     });
   });
 
-  it('should compile stylus into external css files', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/stylus.js');
-
-    webpack(Pack.config({
-      entry: entry,
-      output: {
-        libraryTarget: 'umd',
-        library: 'Zeus',
-
-        path: outputDir
-      }
-    }), function(err, status) {
-      expect(err).to.not.exist;
-
-      var compilation = status.stats[0].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
-
-      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
-
-      // Verify the actual css content
-      var output = fs.readFileSync(outputDir + '/0.pack.css').toString();
-      expect(output).to.match(/\.foo\s*\{/);
-      expect(output).to.match(/\.baz\s*\{/);
-      expect(output).to.not.match(/\.browser\s*\{/);
-      expect(output).to.not.match(/\.android\s*\{/);
-      expect(output).to.not.match(/\.ios\s*\{/);
-
-      done();
-    });
-  });
-  it('should build hybrid style files', function(done) {
-    var entry = path.resolve(__dirname + '/fixtures/stylus.js');
-
-    webpack(Pack.config({
-      entry: entry,
-      hybrid: true,
-      output: {
-        path: outputDir
-      }
-    }), function(err, status) {
-      expect(err).to.not.exist;
-
-
-      var compilation = status.stats[1].compilation;
-      expect(compilation.errors).to.be.empty;
-      expect(compilation.warnings).to.be.empty;
-
-      expect(Object.keys(compilation.assets)).to.eql(['pack.js', '0.pack.css', 'circus.json', 'pack.js.map']);
-
-      // Check the meta config definition
-      var output = JSON.parse(fs.readFileSync(outputDir + '/circus.json').toString());
-      expect(output).to.eql({
-        children: {
-          "$isAndroid;": "android",
-          "$isiOS;": "ios",
-          "$isBrowser;": "browser"
-        }
-      });
-
-      // Verify the actual css content
-      output = fs.readFileSync(outputDir + '/browser/0.pack.css').toString();
-      expect(output).to.match(/\.foo\s*\{/);
-      expect(output).to.match(/\.baz\s*\{/);
-      expect(output).to.match(/\.browser\s*\{/);
-      expect(output).to.not.match(/\.android\s*\{/);
-      expect(output).to.not.match(/\.ios\s*\{/);
-
-      output = fs.readFileSync(outputDir + '/ios/0.pack.css').toString();
-      expect(output).to.match(/\.foo\s*\{/);
-      expect(output).to.match(/\.baz\s*\{/);
-      expect(output).to.not.match(/\.browser\s*\{/);
-      expect(output).to.not.match(/\.android\s*\{/);
-      expect(output).to.match(/\.ios\s*\{/);
-
-      output = fs.readFileSync(outputDir + '/android/0.pack.css').toString();
-      expect(output).to.match(/\.foo\s*\{/);
-      expect(output).to.match(/\.baz\s*\{/);
-      expect(output).to.not.match(/\.browser\s*\{/);
-      expect(output).to.match(/\.android\s*\{/);
-      expect(output).to.not.match(/\.ios\s*\{/);
-
-      done();
-    });
-  });
-
-  describe('handlebars', function() {
+  describe('integration', function() {
     it('should precompile handlebars templates', function(done) {
       var entry = path.resolve(__dirname + '/fixtures/handlebars-render.js');
 
-      webpack(Pack.config({
+      var config = {
         context: __dirname,
         entry: entry,
         output: {
-          libraryTarget: 'umd',
-          library: 'Zeus',
-
           path: outputDir
         }
-      }), function(err, status) {
+      };
+      config = CircusHandlebars.config(config);
+      config = Circus.config(config);
+
+      webpack(config, function(err, status) {
         expect(err).to.not.exist;
 
-        var compilation = status.stats[0].compilation;
+        var compilation = status.compilation;
         expect(compilation.errors).to.be.empty;
         expect(compilation.warnings).to.be.empty;
 
@@ -330,26 +162,27 @@ describe('loader integration', function() {
       var vendorEntry = path.resolve(__dirname + '/fixtures/require-helpers.js'),
           entry = path.resolve(__dirname + '/fixtures/handlebars-components.js');
 
-      webpack(Pack.config({
+      var config = {
         context: __dirname,
         entry: vendorEntry,
         output: {
           component: 'vendor',
 
-          libraryTarget: 'umd',
-          library: 'Circus',
-
           path: outputDir + '/vendor',
           filename: 'vendor.js'
         }
-      }), function(err, status) {
+      };
+      config = CircusHandlebars.config(config);
+      config = Circus.config(config);
+
+      webpack(config, function(err, status) {
         expect(err).to.not.exist;
 
-        var compilation = status.stats[0].compilation;
+        var compilation = status.compilation;
         expect(compilation.errors).to.be.empty;
         expect(compilation.warnings).to.be.empty;
 
-        webpack(Pack.config({
+        var config = {
           entry: entry,
 
           output: {
@@ -361,10 +194,14 @@ describe('loader integration', function() {
               outputDir
             ]
           }
-        }), function(err, status) {
+        };
+        config = CircusHandlebars.config(config);
+        config = Circus.config(config);
+
+        webpack(config, function(err, status) {
           expect(err).to.not.exist;
 
-          var compilation = status.stats[0].compilation;
+          var compilation = status.compilation;
           expect(compilation.errors).to.be.empty;
           expect(compilation.warnings).to.be.empty;
 
@@ -372,7 +209,7 @@ describe('loader integration', function() {
             expect(loaded.scripts.length).to.equal(3);
             expect(loaded.scripts[0]).to.match(/vendor.js$/);
             expect(loaded.scripts[1]).to.match(/1\.vendor.js$/);
-            expect(loaded.scripts[2]).to.match(/pack.js$/);
+            expect(loaded.scripts[2]).to.match(/bundle.js$/);
 
             expect(loaded.log).to.eql([
               'it worked',
