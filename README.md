@@ -1,6 +1,6 @@
 # circus-handlebars
 
-Implments Handlebars precompilation that is aware of Circus component dependencies when resolving helpers and partials.
+Implements Handlebars precompilation that is aware of [Circus][] component dependencies when resolving helpers and partials.
 
 ## Usage
 
@@ -46,3 +46,5 @@ circus-handlebars defines optional config values on the `handlebars` config key.
 - `extension`: Extension used to resolve partial names. Defaults to `.hbs`.
 - `knownHelpers`: an array of strings defining helpers that are registered via `registerHelper` manually by libraries that are loaded into the application.
 
+
+[circus]: https://github.com/walmartlabs/circus
