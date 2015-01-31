@@ -149,6 +149,25 @@ describe('loader integration', function() {
       done();
     });
   });
+  it('should handle missing helpers', function(done) {
+    var entry = path.resolve(__dirname + '/fixtures/missing-helper.hbs');
+
+    webpack(CircusHandlebars.config({
+      context: __dirname,
+      entry: entry,
+      output: {path: outputDir},
+
+      handlebars: {
+        knownHelpers: ['baat', 'bat']
+      }
+    }), function(err, status) {
+      expect(err).to.not.exist;
+      expect(status.compilation.errors.length).to.equal(1);
+      expect(status.compilation.errors[0].toString()).to.match(/Failed to lookup helper: not-found\nresolve file/);
+
+      done();
+    });
+  });
 
   describe('integration', function() {
     it('should precompile handlebars templates', function(done) {
