@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v0.1.1...master)
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v0.1.2...master)
+
+## v0.1.2 - January 31st, 2015
+- [#3](https://github.com/walmartlabs/circus-handlebars/issues/3) - provide more meaningful logging ([@jhudson8](https://api.github.com/users/jhudson8))
+
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v0.1.1...v0.1.2)
 
 ## v0.1.1 - December 24th, 2014
 - Add repository entry to package.json - d5e3a06
