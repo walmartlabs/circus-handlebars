@@ -65,7 +65,7 @@ describe('loader integration', function() {
   it('should precompile', function(done) {
     var entry = path.resolve(__dirname + '/fixtures/handlebars.hbs');
 
-    webpack({
+    webpack(CircusHandlebars.config({
       context: __dirname,
       entry: entry,
       output: {path: outputDir},
@@ -75,7 +75,7 @@ describe('loader integration', function() {
           { test: /\.hbs$/, loader: __dirname + '/../lib/loaders/handlebars' }
         ]
       }
-    }, function(err, status) {
+    }), function(err, status) {
       expect(err).to.not.exist;
       expect(status.compilation.errors).to.be.empty;
       expect(status.compilation.warnings).to.be.empty;
