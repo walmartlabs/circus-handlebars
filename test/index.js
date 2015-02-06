@@ -57,8 +57,8 @@ describe('loader integration', function() {
           bar: 'bat'
         }
       });
-      expect(config.plugins.length).to.equal(2);
-      expect(config.plugins[1]).to.equal(1);
+      expect(config.plugins.length).to.equal(3);
+      expect(config.plugins[2]).to.equal(1);
     });
   });
 
@@ -257,10 +257,11 @@ describe('loader integration', function() {
           expect(compilation.warnings).to.be.empty;
 
           runPhantom(function(err, loaded) {
-            expect(loaded.scripts.length).to.equal(3);
-            expect(loaded.scripts[0]).to.match(/vendor.js$/);
-            expect(loaded.scripts[1]).to.match(/1\.vendor.js$/);
-            expect(loaded.scripts[2]).to.match(/bundle.js$/);
+            expect(loaded.scripts.length).to.equal(4);
+            expect(loaded.scripts[0]).to.match(/bundle.js$/);
+            expect(loaded.scripts[1]).to.match(/vendor.js$/);
+            expect(loaded.scripts[2]).to.match(/1\.vendor.js$/);
+            expect(loaded.scripts[3]).to.match(/bootstrap.js$/);
 
             expect(loaded.log).to.eql([
               'it worked',
