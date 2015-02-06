@@ -2,7 +2,13 @@
 
 ## Development
 
-[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v0.1.2...master)
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v1.0.0...master)
+
+## v1.0.0 - February 6th, 2015
+- Use alias for shim resolution - 6d0cb13
+- Update test for Circus 2.0.0 - 7d78abc
+
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v0.1.2...v1.0.0)
 
 ## v0.1.2 - January 31st, 2015
 - [#3](https://github.com/walmartlabs/circus-handlebars/issues/3) - provide more meaningful logging ([@jhudson8](https://api.github.com/users/jhudson8))
