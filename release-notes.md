@@ -2,7 +2,12 @@
 
 ## Development
 
-[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v1.0.0...master)
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v1.0.1...master)
+
+## v1.0.1 - March 6th, 2015
+- [#5](https://github.com/walmartlabs/circus-handlebars/pull/5) - fix shim for ie8 ([@patrickkettner](https://api.github.com/users/patrickkettner))
+
+[Commits](https://github.com/walmartlabs/circus-handlebars/compare/v1.0.0...v1.0.1)
 
 ## v1.0.0 - February 6th, 2015
 - Use alias for shim resolution - 6d0cb13
