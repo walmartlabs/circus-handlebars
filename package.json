@@ -1,6 +1,6 @@
 {
   "name": "circus-handlebars",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Handlebars linker for Circus components",
   "main": "index.js",
   "scripts": {
