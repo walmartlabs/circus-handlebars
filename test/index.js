@@ -113,7 +113,7 @@ describe('loader integration', function() {
       expect(output).to.match(/helpers.foo.call\(/);
       expect(output).to.match(/helpers.bat.call\(/);
       expect(output).to.match(/module\.exports = Handlebars\.template\(.*"main"/);
-      expect(output).to.match(/"foo!"/);
+      expect(output).to.match(/'foo!'/);
       expect(output).to.match(/<log info=/);
 
       done();
@@ -199,6 +199,7 @@ describe('loader integration', function() {
         });
 
         runPhantom(function(err, loaded) {
+          expect(err).to.not.exist;
           expect(loaded.log).to.eql([
             'it worked',
             'this too',
@@ -257,6 +258,8 @@ describe('loader integration', function() {
           expect(compilation.warnings).to.be.empty;
 
           runPhantom(function(err, loaded) {
+            expect(err).to.not.exist;
+
             expect(loaded.scripts.length).to.equal(4);
             expect(loaded.scripts[0]).to.match(/bundle.js$/);
             expect(loaded.scripts[1]).to.match(/vendor.js$/);
